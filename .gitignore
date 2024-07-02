@@ -15,6 +15,7 @@
 !/.eslintrc.json
 
 !/types
+!/assets
 
 !/src
 /src/*
