@@ -1,0 +1,70 @@
+name: Module CI/CD
+
+on: 
+  push:
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+# Required to create new releases (in some repos?)
+# https://github.com/ncipollo/release-action/issues/208
+permissions:
+  contents: write
+
+jobs: 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install dependancies
+      shell: bash
+      id: install-dependancies
+      run: npm ci
+
+    - name: Build
+      shell: bash
+      id: build
+      run: npm run build
+
+    # This manifest points to the latest, allowing foundry to find the latest version when updating (this should be in the zipped package)
+    - name: Create package manifest
+      shell: bash
+      id: create-package-manifest
+      run: npm run updateZipManifestForGithub
+
+    # create a zip file with all files required by the module to add to the release
+    - name: Package
+      shell: bash
+      id: package
+      run: npm run package
+
+    # This manifest points to itself, allowing to download a specific version
+    - name: Create external manifest
+      shell: bash
+      id: create-external-manifest
+      run: npm run updateExternalManifestForGithub
+
+    # Update the 'latest' release
+    - name: Update Latest Release
+      id: create-latest-release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true
+        name: Latest
+        draft: false
+        prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: './dist/module.json, ./package/module.zip'
+        tag: latest
+    
+    # Create a release for this specific version
+    - name: Create Version Release
+      id: create-version-release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true # set this to false if you want to prevent updating existing releases
+        name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: './dist/module.json, ./package/module.zip'

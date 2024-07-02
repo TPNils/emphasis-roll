@@ -1,0 +1,25 @@
+{
+  "id": "emphasis-roll",
+  "title": "Emphasis roll",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "11",
+    "verified": "11.315"
+  },
+  "description": "",
+  "authors": ["TPNils"],
+  "url": "",
+  "manifest": "",
+  "download": "",
+  "bugs": "",
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "languages": [],
+  "relationships": {
+    "requires": [],
+    "recommends": [],
+    "systems": []
+  },
+  "socket": false
+}
