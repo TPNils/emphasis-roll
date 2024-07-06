@@ -6,6 +6,8 @@
     "build": "gulp build",
     "package": "gulp buildZip",
     "dev": "gulp watch",
+    "dev11": "gulp watch --fi v11",
+    "dev12": "gulp watch --fi v12",
     "patch": "gulp publish -u patch",
     "minor": "gulp publish -u minor",
     "major": "gulp publish -u major",

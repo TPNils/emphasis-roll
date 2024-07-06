@@ -47,17 +47,6 @@ class FoundryConfig {
       }
     }
 
-    for (const response of responses) {
-      if (response.dataPath) {
-        // Validate correct path
-        const files = fs.readdirSync(response.dataPath).filter(fileName => fileName !== 'Data' && fileName !== 'Config' && fileName !== 'Logs');
-        // 0 files => only the foundry folders exist (or some of them if the server has not yet started for a first time)
-        if (files.length !== 0) {
-          throw new Error(`dataPath "${response.dataPath}" in foundryconfig.json ${response.runInstanceKey} is not recognised as a foundry folder. The folder should include 3 other folders: Data, Config & Logs`);
-        }
-      }
-    }
-
     return responses;
   }
 
