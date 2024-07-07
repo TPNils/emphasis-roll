@@ -18,7 +18,6 @@ export class Dnd5e {
       }
       Dnd5e.#abilityDialogTitleParts.push(game.i18n.localize("DND5E.DeathSavingThrow"));
       Dnd5e.#abilityDialogTitleParts.push(game.i18n.localize("DND5E.Initiative"));
-      console.log(Dnd5e.#abilityDialogTitleParts)
     }
 
     for (const part of Dnd5e.#abilityDialogTitleParts) {
