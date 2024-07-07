@@ -1,5 +1,35 @@
 export class Dnd5e {
 
+  static #abilityDialogTitleParts: string[];
+  static #isAbilityDialogTitle(title: string): boolean {
+    if (Dnd5e.#abilityDialogTitleParts == null) {
+      Dnd5e.#abilityDialogTitleParts = [];
+      for (const ability of Object.values((CONFIG as any).DND5E.abilities) as Array<{label?: string}>) {
+        Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.AbilityPromptTitle", {ability: ability.label ?? ''}));
+        Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.SavePromptTitle", {ability: ability.label ?? ''}));
+      }
+      for (const skill of Object.values((CONFIG as any).DND5E.skills) as Array<{label?: string}>) {
+        Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.SkillPromptTitle", {skill: skill.label ?? ''}));
+      }
+      for (const toolId of Object.keys((CONFIG as any).DND5E.toolIds) as Array<string>) {
+        Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.ToolPromptTitle", {
+          tool: (game as any).dnd5e.documents.Trait.keyLabel(toolId, {trait: 'tool'}) ?? ''
+        }));
+      }
+      Dnd5e.#abilityDialogTitleParts.push(game.i18n.localize("DND5E.DeathSavingThrow"));
+      Dnd5e.#abilityDialogTitleParts.push(game.i18n.localize("DND5E.Initiative"));
+      console.log(Dnd5e.#abilityDialogTitleParts)
+    }
+
+    for (const part of Dnd5e.#abilityDialogTitleParts) {
+      if (title.startsWith(part)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   public static register(): void {
     Dnd5e.#injectAbilityDialogs();
   }
@@ -11,6 +41,9 @@ export class Dnd5e {
         return;
       }
       if (!buttonKeys.includes('advantage') || !buttonKeys.includes('disadvantage') || !buttonKeys.includes('normal')) {
+        return;
+      }
+      if (!Dnd5e.#isAbilityDialogTitle(app.title)) {
         return;
       }
 
