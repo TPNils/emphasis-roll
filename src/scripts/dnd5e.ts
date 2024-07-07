@@ -59,8 +59,8 @@ export class Dnd5e {
           (CONFIG.Dice as any).D20Roll._onDialogSubmit = onDialogSubmit;
           if (this.validD20Roll) {
             const d20 = (this.terms[0] as Die);
-            delete d20.modifiers;
             let modifiers: string[] = ['e'];
+            d20.modifiers = modifiers;
             Object.defineProperty(d20, 'modifiers', {
               configurable: true,
               get: () => modifiers,
@@ -71,7 +71,7 @@ export class Dnd5e {
                 modifiers = value;
               },
             });
-            delete d20.number;
+            d20.number = 2;
             Object.defineProperty(d20, 'number', {
               configurable: true,
               get: () => 2,
