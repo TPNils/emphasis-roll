@@ -133,7 +133,6 @@ export class Git {
 
   public async getLatestVersionTag(): Promise<string> {
     const tagHash = await cli.execPromise('git show-ref --tags');
-    cli.throwIfError(tagHash);
     const rgx = /refs\/tags\/(.*)/g;
     let match: RegExpExecArray;
     const versions = [];
@@ -142,7 +141,7 @@ export class Git {
         versions.push(match[1]);
       }
     }
-    if (versions.length == null) {
+    if (!versions.length) {
       return 'v0.0.0';
     }
     versions.sort(args.sortVersions);
