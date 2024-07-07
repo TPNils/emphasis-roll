@@ -1,6 +1,7 @@
 import * as fs from 'fs-extra';
 import * as chalk from 'chalk';
 import * as stringify from 'json-stringify-pretty-compact';
+import { context as githubContext } from '@actions/github';
 import { foundryManifest } from './foundry-manifest';
 import { cli } from './cli';
 import { args } from './args';
@@ -12,52 +13,60 @@ export class Git {
     if (!manifest) {
       throw new Error(chalk.red('Manifest JSON not found in the ./src folder'));
     }
-    let remoteName: string;
-    {
-      const out = await cli.execPromise('git remote');
-      if (out.stdout) {
-        const lines = out.stdout.split('\n');
-        if (lines.length === 1) {
-          remoteName = lines[0];
+
+    let githubRepository: string;
+
+    // Try to detect the github repo in a github action
+    if (githubContext.payload?.repository?.full_name) {
+      githubRepository = githubContext.payload?.repository?.full_name;
+    }
+
+    if (githubRepository == null) {
+      let remoteName: string;
+      {
+        const out = await cli.execPromise('git remote');
+        if (out.stdout) {
+          const lines = out.stdout.split('\n');
+          if (lines.length === 1) {
+            remoteName = lines[0];
+          }
         }
       }
-    }
-    if (remoteName == null) {
-      // Find the correct remote
-      const out = await cli.execPromise('git branch -vv --no-color');
-      if (out.stdout) {
-        const rgx = /^\* [^\s]+ +[0-9a-fA-F]+ \[([^\/]+)\//;
-        for (const line of out.stdout.split('\n')) {
-          const match = rgx.exec(line);
-          if (match) {
-            remoteName = match[1];
+      if (remoteName == null) {
+        // Find the correct remote
+        const out = await cli.execPromise('git branch -vv --no-color');
+        if (out.stdout) {
+          const rgx = /^\* [^\s]+ +[0-9a-fA-F]+ \[([^\/]+)\//;
+          for (const line of out.stdout.split('\n')) {
+            const match = rgx.exec(line);
+            if (match) {
+              remoteName = match[1];
+            }
+          }
+        }
+      }
+
+      if (remoteName != null) {
+        const remoteUrl = await cli.execPromise(`git remote get-url --push "${remoteName.replace(/"/g, '\\"')}"`);
+        cli.throwIfError(remoteUrl);
+        const sshRgx = /^git@github\.com:(.*)\.git$/i.exec(remoteUrl.stdout.trim());
+        if (sshRgx) {
+          githubRepository = sshRgx[1];
+        } else {
+          const httpRgx = /^https?:\/\/github\.com\/(.*)\.git$/i.exec(remoteUrl.stdout.trim());
+          if (httpRgx) {
+            githubRepository = httpRgx[1];
           }
         }
       }
     }
-
-    if (remoteName == null) {
-      throw new Error(chalk.red('Could not find the remote git url.'));
-    }
-    const remoteUrl = await cli.execPromise(`git remote get-url --push "${remoteName.replace(/"/g, '\\"')}"`);
-    cli.throwError(remoteUrl);
-    console.log({out: remoteUrl.stdout.trim()})
-    let githubRepository: string;
-    const sshRgx = /^git@github\.com:(.*)\.git$/i.exec(remoteUrl.stdout.trim());
-    if (sshRgx) {
-      githubRepository = sshRgx[1];
-    } else {
-      const httpRgx = /^https?:\/\/github\.com\/(.*)\.git$/i.exec(remoteUrl.stdout.trim());
-      if (httpRgx) {
-        githubRepository = httpRgx[1];
-      }
-    }
+    
     if (githubRepository == null) {
-      throw new Error(chalk.red(`Git remote "${remoteName}" was not detected as a github repo.`));
+      throw new Error(chalk.red(`Git no github repository found.`));
     }
 
-    const currentVersion = manifest.file.version;
-    let targetVersion = args.getVersion(currentVersion, true);
+    const currentVersion = await args.getCurrentVersion();
+    let targetVersion = await args.getNextVersion(currentVersion, true);
     if (targetVersion == null) {
       targetVersion = currentVersion;
     }
@@ -95,21 +104,21 @@ export class Git {
 
   public async validateCleanRepo(): Promise<void> {
     const cmd = await cli.execPromise('git status --porcelain');
-    cli.throwError(cmd);
+    cli.throwIfError(cmd);
     if (typeof cmd.stdout === 'string' && cmd.stdout.length > 0) {
       throw new Error("You must first commit your pending changes");
     }
   }
 
   public async commitNewVersion(): Promise<void> {
-    cli.throwError(await cli.execPromise('git add .'), {ignoreOut: true});
-    let newVersion = 'v' + foundryManifest.getManifest().file.version;
-    cli.throwError(await cli.execPromise(`git commit -m "Updated to ${newVersion}`));
+    cli.throwIfError(await cli.execPromise('git add .'), {ignoreOut: true});
+    let newVersion = 'v' + await args.getCurrentVersion();
+    cli.throwIfError(await cli.execPromise(`git commit -m "Updated to ${newVersion}`));
   }
 
   public async deleteVersionTag(version?: string): Promise<void> {
     if (version == null) {
-      version = 'v' + foundryManifest.getManifest().file.version;
+      version = 'v' + await args.getCurrentVersion();
     }
     // Ignore errors
     await cli.execPromise(`git tag -d ${version}`);
@@ -117,13 +126,31 @@ export class Git {
   }
 
   public async tagCurrentVersion(): Promise<void> {
-    let version = 'v' + foundryManifest.getManifest().file.version;
-    cli.throwError(await cli.execPromise(`git tag -a ${version} -m "Updated to ${version}"`));
-    cli.throwError(await cli.execPromise(`git push origin ${version}`), {ignoreOut: true});
+    let version = 'v' + await args.getCurrentVersion();
+    cli.throwIfError(await cli.execPromise(`git tag -a ${version} -m "Updated to ${version}"`));
+    cli.throwIfError(await cli.execPromise(`git push origin ${version}`), {ignoreOut: true});
+  }
+
+  public async getLatestVersionTag(): Promise<string> {
+    const tagHash = await cli.execPromise('git show-ref --tags');
+    cli.throwIfError(tagHash);
+    const rgx = /refs\/tags\/(.*)/g;
+    let match: RegExpExecArray;
+    const versions = [];
+    while (match = rgx.exec(tagHash.stdout)) {
+      if (args.parseVersion(match[1]) != null) {
+        versions.push(match[1]);
+      }
+    }
+    if (versions.length == null) {
+      return 'v0.0.0';
+    }
+    versions.sort(args.sortVersions);
+    return versions[versions.length - 1];
   }
 
   public async push(): Promise<void> {
-    cli.throwError(await cli.execPromise(`git push`));
+    cli.throwIfError(await cli.execPromise(`git push`));
   }
 
   public async gitMoveTag() {

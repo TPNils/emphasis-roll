@@ -140,15 +140,16 @@ export interface FoundryManifestJsonV10 extends Omit<FoundryManifestJsonV8, 'nam
     /** Systems that this Package supports, all of them optional */
     systems?: Array<FoundryRelationship<'system'>>;
     /** Packages that are required for base functionality */
-    requires?: Array<FoundryRelationship>;
-    conflicts?: Array<FoundryRelationship>;
+    requires?: Array<FoundryRelationship<'module'>>;
   }
   exclusive: boolean;
 }
 
 export interface FoundryManifestJsonV11 extends Omit<FoundryManifestJsonV10, 'relationships'> {
   relationships: FoundryManifestJsonV10['relationships'] & {
-    recommends?: Array<FoundryRelationship>;
+    recommends?: Array<FoundryRelationship<'module'>>;
+    conflicts?: Array<FoundryRelationship>;
+    flags?: FoundryFlags;
   },
 }
 
@@ -180,46 +181,48 @@ class FoundryManifest {
 
       this.manifest = {
         type: type,
-        file: FoundryManifest.toV11(json),
+        file: FoundryManifest.toLatestVersion(json),
       }
     }
     return this.manifest;
   }
 
-  private static toV11(input: FoundryManifestJsonFile): FoundryManifestJsonV11 {
-    const v10: Partial<FoundryManifestJsonV11> = {};
-    v10.authors = input.authors;
+  private static toLatestVersion(input: FoundryManifestJsonFile): FoundryManifestJsonV11 {
+    const latest: Partial<FoundryManifestJsonFile> = JSON.parse(JSON.stringify(input));
+
+    // Migrate deprecated fields from input to
+    latest.authors = input.authors;
     if (input.author) {
-      if (v10.authors == null) {
-        v10.authors = [];
+      if (latest.authors == null) {
+        latest.authors = [];
       }
       input.authors!.push({name: input.author})
     }
-    v10.bugs = input.bugs;
-    v10.changelog = input.changelog;
+    latest.bugs = input.bugs;
+    latest.changelog = input.changelog;
     if (input.compatibility) {
-      v10.compatibility = input.compatibility;
+      latest.compatibility = input.compatibility;
     } else {
-      v10.compatibility = {
+      latest.compatibility = {
         minimum: input.minimumCoreVersion,
         verified: input.compatibleCoreVersion,
       };
     }
-    v10.description = input.description;
-    v10.download = input.download;
-    v10.esmodules = input.esmodules;
-    v10.flags = input.flags;
-    v10.id = input.id ?? input.name;
-    v10.languages = input.languages;
-    v10.license = input.license;
-    v10.manifest = input.manifest;
+    latest.description = input.description;
+    latest.download = input.download;
+    latest.esmodules = input.esmodules;
+    latest.flags = input.flags;
+    latest.id = input.id ?? input.name;
+    latest.languages = input.languages;
+    latest.license = input.license;
+    latest.manifest = input.manifest;
     if (input.packs) {
-      v10.packs = [];
+      latest.packs = new Array<any>();
       for (const pack of input.packs) {
         if (pack.type != null) {
-          v10.packs.push(pack);
+          latest.packs.push(pack);
         } else {
-          v10.packs.push({
+          latest.packs.push({
             name: pack.name,
             label: pack.label,
             path: pack.path,
@@ -231,13 +234,17 @@ class FoundryManifest {
         }
       }
     }
-    v10.protected = input.protected;
-    v10.readme = input.readme;
-    const relationshipRequiredById = new Map<string, FoundryRelationship>();
+    latest.protected = input.protected;
+    latest.readme = input.readme;
+    const relationshipRequiredById = new Map<string, FoundryRelationship<'module'>>();
     const relationshipSystemsById = new Map<string, FoundryRelationship<'system'>>();
     if (input.dependencies) {
       for (const module of input.dependencies) {
-        relationshipRequiredById.set(module.name, {id: module.name, type: module.type, manifest: module.manifest});
+        if (module.type === 'system') {
+          relationshipSystemsById.set(module.name, {id: module.name, type: module.type, manifest: module.manifest});
+        } else {
+          relationshipRequiredById.set(module.name, {id: module.name, type: module.type, manifest: module.manifest});
+        }
       }
     }
     if (input.system) {
@@ -247,7 +254,11 @@ class FoundryManifest {
     }
     if (input.relationships?.requires) {
       for (const required of input.relationships.requires) {
-        relationshipRequiredById.set(required.id, required);
+        if ((required.type as string) === 'system') {
+          relationshipSystemsById.set(required.id, required as any as FoundryRelationship<'system'>);
+        } else {
+          relationshipRequiredById.set(required.id, required);
+        }
       }
     }
     if (input.relationships?.systems) {
@@ -255,20 +266,27 @@ class FoundryManifest {
         relationshipSystemsById.set(system.id, system);
       }
     }
-    v10.relationships = {
-      requires: Array.from(relationshipRequiredById.values()),
-      systems: Array.from(relationshipSystemsById.values()),
-      conflicts: input.relationships?.conflicts,
-      recommends: input.relationships?.recommends,
-    };
-    v10.scripts = input.scripts;
-    v10.socket = input.socket;
-    v10.styles = input.styles;
-    v10.title = input.title;
-    v10.url = input.url;
-    v10.version = input.version;
+    if (latest.relationships == null) {
+      latest.relationships = {};
+    }
+    latest.relationships.requires = Array.from(relationshipRequiredById.values());
+    latest.relationships.systems = Array.from(relationshipSystemsById.values());
+    latest.scripts = input.scripts;
+    latest.socket = input.socket;
+    latest.styles = input.styles;
+    latest.title = input.title;
+    latest.url = input.url;
+    latest.version = input.version;
+    
+    // Delete deprecated fields from latest version
+    delete latest.name;
+    delete latest.author;
+    delete latest.minimumCoreVersion;
+    delete latest.compatibleCoreVersion;
+    delete latest.system;
+    delete latest.dependencies;
 
-    return v10 as FoundryManifestJsonV10;
+    return latest as any;
   }
 
   private static injectV9(input: FoundryManifestJsonV10): FoundryManifestJsonV10 & FoundryManifestJsonV8 {

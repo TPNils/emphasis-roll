@@ -2,6 +2,7 @@
 import * as chalk from 'chalk';
 import * as yargs from 'yargs';
 import { foundryManifest } from './foundry-manifest';
+import { git } from './git';
 
 export interface Version {
   major: number;
@@ -11,15 +12,28 @@ export interface Version {
 }
 
 class Args {
+  private static readonly versionMatch = /^v?(\d{1,})(?:\.(\d{1,})(?:\.(\d{1,})(-.+)?)?)?$/;
   /** @type {{u?: string; update?: string;}} */
   private args: {
     u?: string; update?: string;
     fi?: string; foundryinstance?: string;
   } = yargs.argv;
+  
+  public async getCurrentVersion(): Promise<string> {
+    const versions = await Promise.all([
+      git.getLatestVersionTag(),
+      foundryManifest.getManifest().file.version,
+    ]);
+    const latestVersion = versions.filter(v => !!v).sort(this.sortVersions)[versions.length - 1];
+    if (latestVersion.startsWith('v')) {
+      return latestVersion.substring(1)
+    }
+    return latestVersion;
+  }
  
-  public getVersion(currentVersion: string, allowNoVersion: true): string
-  public getVersion(currentVersion: string, allowNoVersion?: false): string | null
-  public getVersion(currentVersion: string, allowNoVersion = false): string | null {
+  public getNextVersion(currentVersion: string, allowNoVersion: true): string
+  public getNextVersion(currentVersion?: string, allowNoVersion?: false): string | null
+  public getNextVersion(currentVersion?: string, allowNoVersion = false): string | null {
     if (currentVersion == null || currentVersion == '') {
       currentVersion = '0.0.0';
     }
@@ -31,14 +45,13 @@ class Args {
       throw new Error('Missing version number. Use -u <version> (or --update) to specify a version.');
     }
   
-    const versionMatch = /^v?(\d{1,}).(\d{1,}).(\d{1,})(-.+)?$/;
     let targetVersion: string;
   
-    if (versionMatch.test(version)) {
+    if (Args.versionMatch.test(version)) {
       targetVersion = version;
     } else {
       targetVersion = currentVersion.replace(
-        versionMatch,
+        Args.versionMatch,
         (substring, major, minor, patch, addon) => {
           let target: string | null = null;
           if (version.toLowerCase() === 'major') {
@@ -90,13 +103,26 @@ class Args {
     return null;
   }
 
+  public sortVersions(a: string, b: string): number {
+    const aRgx = Args.versionMatch.exec(a);
+    const bRgx  = Args.versionMatch.exec(b);
+
+    for (let i = 1, diff = 0; i < aRgx.length - 1; i++) {
+      diff = (!!aRgx[i] ? Number(aRgx[i]) : 0) - (!!bRgx[i] ? Number(bRgx[i]) : 0);
+      if (diff !== 0) {
+        return 1;
+      }
+    }
+    return (aRgx[aRgx.length-1] ?? '').localeCompare(bRgx[bRgx.length-1] ?? '')
+  }
+
   public async validateVersion(): Promise<void> {
-      const currentVersionString = foundryManifest.getManifest().file.version;
+      const currentVersionString = await git.getLatestVersionTag();
       const currentVersion = this.parseVersion(currentVersionString);
       if (!currentVersion) {
         return;
       }
-      const newVersionString = this.getVersion(currentVersionString, false);
+      const newVersionString = await this.getNextVersion(currentVersionString, false);
       const newVersion = this.parseVersion(newVersionString)!;
 
       if (currentVersion.major < newVersion.major) {

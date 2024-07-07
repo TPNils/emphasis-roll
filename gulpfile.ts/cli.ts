@@ -23,7 +23,7 @@ export class Cli {
     });
   }
 
-  public throwError(cmd: ExecResponse, options: {ignoreOut?: boolean} = {}): void {
+  public throwIfError(cmd: ExecResponse, options: {ignoreOut?: boolean} = {}): void {
     if (cmd.err) {
       throw cmd.err;
     }
