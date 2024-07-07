@@ -2,14 +2,14 @@ export class ModuleSettings {
 
   public static registerSettings(): void {
     game.settings.register<string, string, string>('emphasis-roll', 'variant-rule-tiebreakers', {
-      name: 'Variant rule: Tiebreakers',
-      hint: `How to handle when you roll 2 numbers equidistant from the middle. Example: the middle of a d20 is considered a 10 and you rolled a 7 and 13`,
+      name: 'emphasis-roll.setting-variant-rule-tiebreakers-name',
+      hint: `emphasis-roll.setting-variant-rule-tiebreakers-hint`,
       scope: 'world',
       config: true,
       type: String,
       choices: {
-        reroll: 'Reroll',
-        takeHigher: 'Take higher',
+        reroll: game.i18n.localize(`emphasis-roll.reroll`),
+        takeHigher: game.i18n.localize(`emphasis-roll.take-higher`),
       },
       default: 'reroll',
     });

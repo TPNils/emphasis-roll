@@ -52,7 +52,7 @@ export class Dnd5e {
 
   static #injectEmphasisButton(app: Dialog, invokeButton: string): void {
     app.data.buttons.emphasis = {
-      label: 'Emphasis',
+      label: game.i18n.localize(`emphasis-roll.emphasis`),
       callback: html => {
         const onDialogSubmit: Function = (CONFIG.Dice as any).D20Roll.prototype._onDialogSubmit;
         (CONFIG.Dice as any).D20Roll.prototype._onDialogSubmit = function(this: Roll & {readonly validD20Roll: boolean}, ...args: [HTMLElement | JQuery, number]) {

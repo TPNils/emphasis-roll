@@ -1,0 +1,7 @@
+{
+  "emphasis-roll.emphasis": "Emphasis",
+  "emphasis-roll.setting-variant-rule-tiebreakers-name": "Variant rule: Tiebreakers",
+  "emphasis-roll.setting-variant-rule-tiebreakers-hint": "How to handle when you roll 2 numbers equidistant from the middle. Example: the middle of a d20 is considered a 10 and you rolled a 7 and 13",
+  "emphasis-roll.reroll": "Reroll",
+  "emphasis-roll.take-higher": "Take higher"
+}
