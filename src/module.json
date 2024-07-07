@@ -1,18 +1,20 @@
 {
   "id": "emphasis-roll",
   "title": "Emphasis roll",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "compatibility": {
     "minimum": "11",
     "verified": "12"
   },
   "description": "",
   "authors": [
-    {"name": "TPNils"}
+    {
+      "name": "TPNils"
+    }
   ],
-  "url": "",
-  "manifest": "",
-  "download": "",
+  "url": "https://github.com/TPNils/emphasis-roll",
+  "manifest": "https://github.com/TPNils/emphasis-roll/releases/download/latest/module.json",
+  "download": "https://github.com/TPNils/emphasis-roll/releases/download/v1.1.0/module.zip",
   "bugs": "",
   "esmodules": [
     "scripts/main.js"
