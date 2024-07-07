@@ -14,6 +14,49 @@ export class Git {
       throw new Error(chalk.red('Manifest JSON not found in the ./src folder'));
     }
 
+    const githubRepository = await this.getGithubRepoName();
+    if (githubRepository == null) {
+      throw new Error(chalk.red(`Git no github repository found.`));
+    }
+
+    const currentVersion = await args.getCurrentVersion();
+    let targetVersion = await args.getNextVersion(currentVersion, true);
+    if (targetVersion == null) {
+      targetVersion = currentVersion;
+    }
+
+    if (targetVersion.startsWith('v')) {
+      targetVersion = targetVersion.substring(1);
+    }
+
+    console.log(`Updating version number to '${targetVersion}'`);
+
+    packageJson.version = targetVersion;
+
+    manifest.file.version = targetVersion;
+    manifest.file.url = `https://github.com/${githubRepository}`;
+    // When foundry checks if there is an update, it will fetch the manifest present in the zip, for us it points to the latest one.
+    // The external one should point to itself so you can download a specific version
+    // The zipped one should point to the latest manifest so when the "check for update" is executed it will fetch the latest
+    if (externalManifest) {
+      // Seperate file uploaded for github
+      manifest.file.manifest = `https://github.com/${githubRepository}/releases/download/v${targetVersion}/module.json`;
+    } else {
+      // The manifest which is within the module zip
+      manifest.file.manifest = `https://github.com/${githubRepository}/releases/download/latest/module.json`;
+    }
+    manifest.file.download = `https://github.com/${githubRepository}/releases/download/v${targetVersion}/module.zip`;
+
+    fs.writeFileSync(
+      'package.json',
+      stringify(packageJson, {indent: '  '}),
+      'utf8'
+    );
+    await foundryManifest.saveManifest({overrideManifest: manifest.file, source: source});
+    
+  }
+
+  public async getGithubRepoName(): Promise<string> {
     let githubRepository: string;
 
     // Try to detect the github repo in a github action
@@ -61,45 +104,7 @@ export class Git {
       }
     }
     
-    if (githubRepository == null) {
-      throw new Error(chalk.red(`Git no github repository found.`));
-    }
-
-    const currentVersion = await args.getCurrentVersion();
-    let targetVersion = await args.getNextVersion(currentVersion, true);
-    if (targetVersion == null) {
-      targetVersion = currentVersion;
-    }
-
-    if (targetVersion.startsWith('v')) {
-      targetVersion = targetVersion.substring(1);
-    }
-
-    console.log(`Updating version number to '${targetVersion}'`);
-
-    packageJson.version = targetVersion;
-
-    manifest.file.version = targetVersion;
-    manifest.file.url = `https://github.com/${githubRepository}`;
-    // When foundry checks if there is an update, it will fetch the manifest present in the zip, for us it points to the latest one.
-    // The external one should point to itself so you can download a specific version
-    // The zipped one should point to the latest manifest so when the "check for update" is executed it will fetch the latest
-    if (externalManifest) {
-      // Seperate file uploaded for github
-      manifest.file.manifest = `https://github.com/${githubRepository}/releases/download/v${targetVersion}/module.json`;
-    } else {
-      // The manifest which is within the module zip
-      manifest.file.manifest = `https://github.com/${githubRepository}/releases/download/latest/module.json`;
-    }
-    manifest.file.download = `https://github.com/${githubRepository}/releases/download/v${targetVersion}/module.zip`;
-
-    fs.writeFileSync(
-      'package.json',
-      stringify(packageJson, {indent: '  '}),
-      'utf8'
-    );
-    await foundryManifest.saveManifest({overrideManifest: manifest.file, source: source});
-    
+    return githubRepository;
   }
 
   public async validateCleanRepo(): Promise<void> {
@@ -123,6 +128,12 @@ export class Git {
     // Ignore errors
     await cli.execPromise(`git tag -d ${version}`);
     await cli.execPromise(`git push --delete origin ${version}`);
+  }
+
+  public async getCurrentLongHash(): Promise<string> {
+    const hash = await cli.execPromise(`git rev-parse HEAD`);
+    cli.throwIfError(hash);
+    return hash.stdout?.split('\n')?.[0];
   }
 
   public async tagCurrentVersion(): Promise<void> {

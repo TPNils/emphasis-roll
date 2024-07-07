@@ -5,6 +5,7 @@
   "scripts": {
     "build": "gulp build",
     "package": "gulp buildZip",
+    "compileReadme": "gulp compileReadme",
     "dev": "gulp watch",
     "dev11": "gulp watch --fi v11",
     "dev12": "gulp watch --fi v12",
@@ -22,6 +23,7 @@
     "@league-of-foundry-developers/foundry-vtt-types": "^9.280.0",
     "@types/gulp": "^4.0.9",
     "@types/node": "^16.10.1",
+    "@types/showdown": "^2.0.6",
     "archiver": "^5.0.0",
     "chalk": "^4.1.2",
     "del": "^6.0.0",
@@ -39,8 +41,11 @@
     "json-stringify-pretty-compact": "^2.0.0",
     "open": "^8.4.0",
     "sass": "^1.26.10",
+    "showdown": "^2.1.0",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.5"
   },
-  "dependencies": {"@actions/github": "^6.0.0"}
+  "dependencies": {
+    "@actions/github": "^6.0.0"
+  }
 }

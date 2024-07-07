@@ -20,6 +20,7 @@ import { FoundryConfigJson, foundryConfig } from './foundry-config';
 import { buildMeta } from './build-meta';
 import { args } from './args';
 import { git } from './git';
+import { FoundryWebsiteApi } from './foundry-website-api';
 
 const sass = gulpSass(sassCompiler);
 
@@ -403,6 +404,10 @@ export const buildZip = gulp.series(
   build,
   BuildActions.createBuildPackage(buildMeta.getDestPath()[0])
 );
+export async function compileReadme() {
+  const html = await FoundryWebsiteApi.markdownToHtml(fs.readFileSync('./README.md', 'utf8'));
+  fs.writeFileSync('./README.html', html, 'utf8')
+}
 export function rePublish() {
   return git.gitMoveTag();
 }
