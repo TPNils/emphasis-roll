@@ -18,7 +18,7 @@
     "updateExternalManifestForGithub": "gulp updateExternalManifestForGithub"
   },
   "author": "",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "devDependencies": {
     "@league-of-foundry-developers/foundry-vtt-types": "^9.280.0",
     "@types/gulp": "^4.0.9",
