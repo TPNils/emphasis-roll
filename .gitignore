@@ -2,7 +2,7 @@
 !/.gitignore
 !/.npmignore
 !/.github
-!/gulpfile.ts
+!/builder.ts
 !/config.json
 !/package.json
 !/package-lock.json
