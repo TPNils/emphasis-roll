@@ -4,7 +4,6 @@ import * as path from 'path';
 import * as sass from 'sass';
 
 import { ChildProcess } from 'child_process';
-import { args } from './args';
 import { Git } from './git';
 import { FoundryVTT } from './foundy-vtt';
 import { Version } from './version';
@@ -195,13 +194,16 @@ export async function rePublish(): Promise<void> {
   await Git.tagCurrentVersion(currentVersion);
 }
 
-export async function publish(): Promise<void> {
-  await args.validateVersion();
+export async function publish(newVersion: Version): Promise<void> {
+  const gitVersion = await Git.getLatestVersionTag();
+  const versions = [newVersion, await Git.getLatestVersionTag()].sort(Version.sort);
+  if (versions[1] !== newVersion) {
+    throw new Error(`New version is not higher. old: ${Version.toString(gitVersion)} | new: ${Version.toString(newVersion)}`);
+  }
   await Git.validateCleanRepo();
 
   const srcPath = preBuildValidation().rootDir;
   const manifest = FoundryVTT.readManifest(srcPath);
-  const newVersion = args.getNextVersion(await Git.getLatestVersionTag());
   manifest.manifest.version = Version.toString(newVersion);
   await Git.setGithubLinks(manifest.manifest, false);
   await FoundryVTT.writeManifest(manifest, {injectCss: true, injectHbs: true, injectOlderVersionProperties: true});

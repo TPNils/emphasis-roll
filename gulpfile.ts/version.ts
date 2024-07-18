@@ -54,8 +54,11 @@ export namespace Version {
     let diff: number;
     for (const key of ['major', 'minor', 'patch']) {
       diff = versionA[key] - versionB[key];
-      if (diff !== 0) {
+      if (diff > 0) {
         return 1;
+      }
+      if (diff < 0) {
+        return -1;
       }
     }
 

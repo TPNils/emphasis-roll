@@ -1,7 +1,8 @@
 import * as path from "path";
 import { args } from "./args";
 import { FoundryVTT } from "./foundy-vtt";
-import { build, compileReadme, preBuildValidation, watch } from "./tasks";
+import { build, compileReadme, preBuildValidation, watch, publish, rePublish, manifestForGithubCurrentVersion, manifestForGithubLatestVersion } from "./tasks";
+import { Git } from "./git";
 
 switch (process.argv[2]) {
   case 'build': {
@@ -31,39 +32,24 @@ switch (process.argv[2]) {
     break;
   }
   case 'publish': {
-    publish();
+    publish(args.getNextVersion(await Git.getLatestVersionTag()));
     break;
   }
   case 'reupload': {
-    reupload();
+    rePublish();
     break;
   }
   case 'updateZipManifestForGithub': {
-    updateZipManifestForGithub();
+    manifestForGithubCurrentVersion();
     break;
   }
   case 'updateExternalManifestForGithub': {
-    updateExternalManifestForGithub();
+    manifestForGithubLatestVersion();
     break;
   }
 
   default: {
-    // throw new Error(`Unknown command: ${process.execArgv.join(' ')}`)
+    throw new Error(`Unknown command: ${process.execArgv.join(' ')}`)
   }
-}
-function publish() {
-  throw new Error("Function not implemented.");
-}
-
-function reupload() {
-  throw new Error("Function not implemented.");
-}
-
-function updateZipManifestForGithub() {
-  throw new Error("Function not implemented.");
-}
-
-function updateExternalManifestForGithub() {
-  throw new Error("Function not implemented.");
 }
 
