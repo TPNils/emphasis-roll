@@ -9,7 +9,7 @@
     "sourceMap": true,
     "allowUmdGlobalAccess": true
   },
-  "include": [ "src/**/*", "gulpfile.ts/**/*" ],
+  "include": [ "src/**/*" ],
   "exclude": ["node_modules"],
   "ts-node": {
     "compilerOptions": {
