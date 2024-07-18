@@ -22,11 +22,6 @@
   "devDependencies": {
     "@league-of-foundry-developers/foundry-vtt-types": "^9.280.0",
     "@types/node": "^20.14.11",
-    "foundry-vtt-build-tools": "file:../build-tools",
-    "ts-node": "^10.9.2"
-  },
-  "dependencies": {
-    "chalk": "^4.1.2",
-    "yargs": "^17.7.2"
+    "foundry-vtt-build-tools": "file:../build-tools"
   }
 }
