@@ -2,6 +2,8 @@
   "emphasis-roll.emphasis": "Emphasis",
   "emphasis-roll.setting-variant-rule-tiebreakers-name": "Variant rule: Tiebreakers",
   "emphasis-roll.setting-variant-rule-tiebreakers-hint": "How to handle when you roll 2 numbers equidistant from the middle. Example: the middle of a d20 is considered a 10 and you rolled a 7 and 13",
+  "emphasis-roll.dnd5e-show-attack-name": "Show button for attacks",
+  "emphasis-roll.dnd5e-show-attack-hint": "",
   "emphasis-roll.dnd5e-show-ability-name": "Show button for ability checks",
   "emphasis-roll.dnd5e-show-ability-hint": "",
   "emphasis-roll.dnd5e-show-skill-name": "Show button for skill checks",
