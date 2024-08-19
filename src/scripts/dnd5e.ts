@@ -1,23 +1,48 @@
+const showRollForOptions = [
+  {name: 'ability', default: true},
+  {name: 'skill', default: true},
+  {name: 'tool', default: true},
+  {name: 'save', default: true},
+  {name: 'death-save', default: true},
+  {name: 'initiative', default: true},
+] as const;
+
+type RollType = (typeof showRollForOptions)[number]['name'];
+
 export class Dnd5e {
 
   static #abilityDialogTitleParts: string[];
   static #isAbilityDialogTitle(title: string): boolean {
     if (Dnd5e.#abilityDialogTitleParts == null) {
       Dnd5e.#abilityDialogTitleParts = [];
-      for (const ability of Object.values((CONFIG as any).DND5E.abilities) as Array<{label?: string}>) {
-        Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.AbilityPromptTitle", {ability: ability.label ?? ''}));
-        Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.SavePromptTitle", {ability: ability.label ?? ''}));
+      if (Dnd5e.shouldShowRoll('ability')) {
+        for (const ability of Object.values((CONFIG as any).DND5E.abilities) as Array<{label?: string}>) {
+          Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.AbilityPromptTitle", {ability: ability.label ?? ''}));
+        }
       }
-      for (const skill of Object.values((CONFIG as any).DND5E.skills) as Array<{label?: string}>) {
-        Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.SkillPromptTitle", {skill: skill.label ?? ''}));
+      if (Dnd5e.shouldShowRoll('save')) {
+        for (const ability of Object.values((CONFIG as any).DND5E.abilities) as Array<{label?: string}>) {
+          Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.SavePromptTitle", {ability: ability.label ?? ''}));
+        }
       }
-      for (const toolId of Object.keys((CONFIG as any).DND5E.toolIds) as Array<string>) {
-        Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.ToolPromptTitle", {
-          tool: (game as any).dnd5e.documents.Trait.keyLabel(toolId, {trait: 'tool'}) ?? ''
-        }));
+      if (Dnd5e.shouldShowRoll('skill')) {
+        for (const skill of Object.values((CONFIG as any).DND5E.skills) as Array<{label?: string}>) {
+          Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.SkillPromptTitle", {skill: skill.label ?? ''}));
+        }
       }
-      Dnd5e.#abilityDialogTitleParts.push(game.i18n.localize("DND5E.DeathSavingThrow"));
-      Dnd5e.#abilityDialogTitleParts.push(game.i18n.localize("DND5E.Initiative"));
+      if (Dnd5e.shouldShowRoll('tool')) {
+        for (const toolId of Object.keys((CONFIG as any).DND5E.toolIds) as Array<string>) {
+          Dnd5e.#abilityDialogTitleParts.push(game.i18n.format("DND5E.ToolPromptTitle", {
+            tool: (game as any).dnd5e.documents.Trait.keyLabel(toolId, {trait: 'tool'}) ?? ''
+          }));
+        }
+      }
+      if (Dnd5e.shouldShowRoll('death-save')) {
+        Dnd5e.#abilityDialogTitleParts.push(game.i18n.localize("DND5E.DeathSavingThrow"));
+      }
+      if (Dnd5e.shouldShowRoll('initiative')) {
+        Dnd5e.#abilityDialogTitleParts.push(game.i18n.localize("DND5E.Initiative"));
+      }
     }
 
     for (const part of Dnd5e.#abilityDialogTitleParts) {
@@ -29,8 +54,12 @@ export class Dnd5e {
     return false;
   }
 
+  static shouldShowRoll(rollType: RollType): boolean {
+    return game.settings.get('emphasis-roll', `dnd5e-show-${rollType}`) === true;
+  }
   public static register(): void {
     Dnd5e.#injectAbilityDialogs();
+    Dnd5e.#registerSettings();
   }
 
   static #injectAbilityDialogs(): void {
@@ -84,6 +113,24 @@ export class Dnd5e {
       },
     }
     setTimeout(() => app.render(true));
+  }
+
+  static #registerSettings(): void {
+    for (const setting of showRollForOptions) {
+      const settingName = `dnd5e-show-${setting.name}`;
+      console.debug('emphasis-roll', settingName)
+      game.settings.register<string, string, boolean>('emphasis-roll', settingName, {
+        name: `emphasis-roll.${settingName}-name`,
+        hint: `emphasis-roll.${settingName}-hint`,
+        scope: 'world',
+        type: Boolean,
+        config: true,
+        default: setting.default,
+        // Re-detect titles
+        onChange: () => Dnd5e.#abilityDialogTitleParts = null,
+      });
+    }
+    
   }
 
 }
