@@ -4,7 +4,8 @@
 ![emphasis-roll-rule-set](/assets/emphasis-roll-rule-set.jpg)
 
 ## Variant rule: Tiebreaker
-Choose which variant rule you want.
+Choose which variant rule you want in the module settings.
+On a tie break, you can either **reroll** (default) or **take the higher result**.
 
 ![dnd5e](/assets/variant-rule-setting.jpg)
 
@@ -23,4 +24,4 @@ You can also choose your roll variant rule per roll basis with the `er` and `eh`
 > /roll 2d20er = Reroll  
 > /roll 2d20eh = Take higher
 
-![manual](/assets/manual-roll.png)
+![manual](/assets/manual-roll.jpg)
