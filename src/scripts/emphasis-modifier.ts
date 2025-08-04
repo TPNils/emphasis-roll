@@ -1,5 +1,8 @@
 import { ModuleSettings } from "./module-settings.js";
 
+// @ts-ignore
+const DieCls: typeof Die = foundry?.dice?.terms?.Die ?? Die;
+
 function getTiebreakerRule(modifier: `e${string}`): ReturnType<(typeof ModuleSettings)['getTiebreakerRule']> {
   switch (modifier[1]?.toLowerCase()) {
     case 'r': {
@@ -14,7 +17,8 @@ function getTiebreakerRule(modifier: `e${string}`): ReturnType<(typeof ModuleSet
   }
 }
 
-function emphasis(this: Die, modifier: `e${string}`): false | void {
+// @ts-ignore
+function emphasis(this: DieCls, modifier: `e${string}`): false | void {
   const tiebreakerRule = getTiebreakerRule(modifier);
   const middle = Math.round(this.faces / 2);
   
@@ -94,12 +98,12 @@ export class EmphasisModifier {
 
   public static register(): void {
     // @ts-ignore
-    Die.MODIFIERS.e = emphasis.name;
+    DieCls.MODIFIERS.e = emphasis.name;
     // @ts-ignore
-    Die.MODIFIERS.er = emphasis.name;
+    DieCls.MODIFIERS.er = emphasis.name;
     // @ts-ignore
-    Die.MODIFIERS.eh = emphasis.name;
+    DieCls.MODIFIERS.eh = emphasis.name;
     
-    Die.prototype[emphasis.name] = emphasis;
+    DieCls.prototype[emphasis.name] = emphasis;
   }
 }

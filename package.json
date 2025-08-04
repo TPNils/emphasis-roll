@@ -9,6 +9,7 @@
     "dev": "foundry-vtt-build-tools watch",
     "dev11": "foundry-vtt-build-tools watch -fi v11",
     "dev12": "foundry-vtt-build-tools watch -fi v12",
+    "dev13": "foundry-vtt-build-tools watch -fi v13",
     "patch": "foundry-vtt-build-tools publish -u patch",
     "minor": "foundry-vtt-build-tools publish -u minor",
     "major": "foundry-vtt-build-tools publish -u major",
