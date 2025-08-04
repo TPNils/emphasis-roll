@@ -133,7 +133,6 @@ export class Dnd5e {
   static #registerSettings(): void {
     for (const setting of showRollForOptions) {
       const settingName = `dnd5e-show-${setting.name}`;
-      console.debug('emphasis-roll', settingName)
       game.settings.register<string, string, boolean>('emphasis-roll', settingName, {
         name: `emphasis-roll.${settingName}-name`,
         hint: `emphasis-roll.${settingName}-hint`,
