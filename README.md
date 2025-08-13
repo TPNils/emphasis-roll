@@ -1,3 +1,10 @@
+[![Foundry version](https://img.shields.io/endpoint?url=https%3A%2F%2Ffoundryshields.com%2Fversion%3Furl%3Dhttps%253A%252F%252Fgithub.com%252FTPNils%252Femphasis-roll%252Freleases%252Fdownload%252Flatest%252Fmodule.json%26style%3Dflat)](https://foundryvtt.com/)
+![System version](https://img.shields.io/endpoint?url=https%3A%2F%2Ffoundryshields.com%2Fsystem%3Furl%3Dhttps%253A%252F%252Fgithub.com%252FTPNils%252Femphasis-roll%252Freleases%252Fdownload%252Flatest%252Fmodule.json%26style%3Dflat%26nameType%3Dshort%26showVersion%3D1)
+[![GitHub package.json version](https://img.shields.io/github/package-json/v/TPNils/emphasis-roll?style=flat&label=latest+version)](https://github.com/TPNils/emphasis-roll/releases/tag/latest)
+[![GitHub issues](https://img.shields.io/github/issues/TPNils/emphasis-roll?style=flat)](https://github.com/TPNils/emphasis-roll/issues)
+
+![GitHub license](https://img.shields.io/github/license/TPNils/emphasis-roll?style=flat)
+
 # Emphasis Roll
 > Based on: https://www.reddit.com/r/UnearthedArcana/comments/11yiatw/brennen_lee_mulligans_new_rolling_with_emphasis/
 
