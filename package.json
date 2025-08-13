@@ -24,6 +24,6 @@
   "devDependencies": {
     "@league-of-foundry-developers/foundry-vtt-types": "^9.280.0",
     "@types/node": "^20.14.11",
-    "foundry-vtt-build-tools": "github:TPNils/foundry-vtt-build-tools#v0.3.1"
+    "foundry-vtt-build-tools": "github:TPNils/foundry-vtt-build-tools#v0.3.2"
   }
 }

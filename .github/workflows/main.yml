@@ -21,28 +21,21 @@ jobs:
       id: install-dependancies
       run: npm ci
 
+    - name: Update package manifest
+      shell: bash
+      id: create-package-manifest
+      run: npm run updateZipManifestForGithub
+
     - name: Build
       shell: bash
       id: build
       run: npm run build
-
-    # This manifest points to the latest, allowing foundry to find the latest version when updating (this should be in the zipped package)
-    - name: Create package manifest
-      shell: bash
-      id: create-package-manifest
-      run: npm run updateZipManifestForGithub
 
     # create a zip file with all files required by the module to add to the release
     - name: Package
       shell: bash
       id: package
       run: npm run package
-
-    # This manifest points to itself, allowing to download a specific version
-    - name: Create external manifest
-      shell: bash
-      id: create-external-manifest
-      run: npm run updateExternalManifestForGithub
 
     # Update the 'latest' release
     - name: Update Latest Release
@@ -54,7 +47,7 @@ jobs:
         draft: false
         prerelease: false
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: './dist/module.json, ./package/module.zip'
+        artifacts: './dist/module.json'
         tag: latest
     
     # Create a release for this specific version
